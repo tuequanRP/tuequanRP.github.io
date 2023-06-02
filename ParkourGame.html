@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Parkour Adventure</title>
+  <style>
+    #game-container {
+      width: 400px;
+      height: 400px;
+      position: relative;
+      border: 1px solid black;
+      margin: 0 auto;
+      margin-top: 50px;
+    }
+
+    #character {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      background-color: blue;
+      bottom: 0;
+    }
+
+    .obstacle {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      background-color: red;
+    }
+
+    #score {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="character"></div>
+  </div>
+  <div id="score">Score: 0</div>
+
+  <script>
+    // Game variables
+    var score = 0;
+    var characterJumping = false;
+    var gameContainer = document.getElementById('game-container');
+    var character = document.getElementById('character');
+
+    // Function to handle character jumps
+    function jump() {
+      if (!characterJumping) {
+        characterJumping = true;
+        var jumpHeight = 150;
+        var jumpDuration = 1000;
+        var characterBottom = parseInt(character.style.bottom);
+        var jumpInterval = setInterval(function() {
+          if (characterBottom >= jumpHeight) {
+            clearInterval(jumpInterval);
+            var fallInterval = setInterval(function() {
+              if (characterBottom <= 0) {
+                clearInterval(fallInterval);
+                characterJumping = false;
+              } else {
+                characterBottom -= 5;
+                character.style.bottom = characterBottom + 'px';
+              }
+            }, 10);
+          } else {
+            characterBottom += 5;
+            character.style.bottom = characterBottom + 'px';
+          }
+        }, 10);
+      }
+    }
+
+    // Function to generate random obstacles
+    function generateObstacle() {
+      var obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      obstacle.style.left = '400px';
+      var obstacleHeight = Math.floor(Math.random() * 200) + 50;
+      obstacle.style.height = obstacleHeight + 'px';
+      gameContainer.appendChild(obstacle);
+
+      var obstacleInterval = setInterval(function() {
+        var obstacleLeft = parseInt(obstacle.style.left);
+        if (obstacleLeft <= -50) {
+          clearInterval(obstacleInterval);
+          gameContainer.removeChild(obstacle);
+        } else {
+          obstacleLeft -= 5;
+          obstacle.style.left = obstacleLeft + 'px';
+
+          var characterBottom = parseInt(character.style.bottom);
+          if (characterBottom <= obstacleHeight && obstacleLeft <= 50 && obstacleLeft >= 0) {
+            clearInterval(obstacleInterval);
+            alert('Game Over! Your score is: ' + score);
+            resetGame();
+          }
+        }
+      }, 10);
+    }
+
+    // Function to handle collecting points
+    function collectPoint() {
+      score++;
+      document.getElementById('score').innerText = 'Score: ' + score;
+    }
+
+    // Function to reset the game
+    function resetGame() {
+      score = 0;
+      document.getElementById('score').innerText = 'Score: ' + score;
+      var obstacles = document.getElementsByClassName('obstacle');
+      while (obstacles[0]) {
+        obstacles[0].parentNode.removeChild(obstacles[0]);
+      }
+    }
+
+    // Event listener for character jumps
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'ArrowUp' || event.key === ' ') {
+        jump();
+      }
+    });
+
+    // Event listener for collecting points
+    gameContainer.addEventListener('click', collectPoint);
+
+    // Start the game
+    setInterval(generateObstacle, 2000);
+  </script>
+</body>
+</html>
