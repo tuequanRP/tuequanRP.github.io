@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Target Shooter</title>
+  <style>
+    #game-container {
+      width: 400px;
+      height: 400px;
+      position: relative;
+      border: 1px solid black;
+      margin: 0 auto;
+      margin-top: 50px;
+    }
+
+    #target {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      background-color: red;
+      cursor: pointer;
+    }
+
+    #score {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+    }
+
+    #time {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="target"></div>
+  </div>
+  <div id="score">Score: 0</div>
+  <div id="time">Time: <span id="time-remaining">30</span> seconds</div>
+
+  <script>
+    // Game variables
+    var score = 0;
+    var time = 30;
+    var timer;
+
+    // Function to generate random coordinates for the target
+    function getRandomCoordinates() {
+      var x = Math.floor(Math.random() * 350);
+      var y = Math.floor(Math.random() * 350);
+      return [x, y];
+    }
+
+    // Function to update the target position
+    function updateTargetPosition() {
+      var coordinates = getRandomCoordinates();
+      var target = document.getElementById('target');
+      target.style.left = coordinates[0] + 'px';
+      target.style.top = coordinates[1] + 'px';
+    }
+
+    // Function to handle click event on the target
+    function handleTargetClick() {
+      score++;
+      document.getElementById('score').innerText = 'Score: ' + score;
+      updateTargetPosition();
+    }
+
+    // Function to update the time remaining
+    function updateTimeRemaining() {
+      time--;
+      document.getElementById('time-remaining').innerText = time;
+      if (time === 0) {
+        clearInterval(timer);
+        alert('Game Over! Your score is: ' + score);
+        score = 0;
+        time = 30;
+        document.getElementById('score').innerText = 'Score: ' + score;
+        document.getElementById('time-remaining').innerText = time;
+        updateTargetPosition();
+        startGame();
+      }
+    }
+
+    // Function to start the game
+    function startGame() {
+      updateTargetPosition();
+      timer = setInterval(updateTimeRemaining, 1000);
+    }
+
+    // Event listener for the target click
+    document.getElementById('target').addEventListener('click', handleTargetClick);
+
+    // Start the game
+    startGame();
+  </script>
+</body>
+</html>
