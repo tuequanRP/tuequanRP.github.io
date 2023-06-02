@@ -83,6 +83,7 @@
 
     // Function to check for collision between Mario and platforms
     function checkCollision() {
+      var collided = false;
       for (var i = 0; i < platforms.length; i++) {
         var platform = platforms[i];
         var platformLeft = platform.offsetLeft;
@@ -99,8 +100,12 @@
           marioBottom = platformTop;
           mario.style.bottom = marioBottom + 'px';
           jumping = false;
-          return;
+          collided = true;
+          break;
         }
+      }
+      if (!collided) {
+        jumping = true;
       }
     }
 
@@ -163,4 +168,3 @@
   </script>
 </body>
 </html>
-
