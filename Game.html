@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Target Shooter</title>
+  <title>Simple Mario Adventure</title>
   <style>
     #game-container {
-      width: 400px;
+      width: 800px;
       height: 400px;
       position: relative;
       border: 1px solid black;
       margin: 0 auto;
       margin-top: 50px;
+      overflow: hidden;
     }
 
-    #target {
+    #mario {
       width: 50px;
       height: 50px;
       position: absolute;
+      bottom: 0;
       background-color: red;
-      cursor: pointer;
+    }
+
+    .platform {
+      width: 100px;
+      height: 20px;
+      position: absolute;
+      background-color: green;
     }
 
     #score {
@@ -25,76 +33,134 @@
       font-size: 20px;
       margin-top: 20px;
     }
-
-    #time {
-      text-align: center;
-      font-size: 20px;
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
   <div id="game-container">
-    <div id="target"></div>
+    <div id="mario"></div>
+    <div id="platform1" class="platform"></div>
+    <div id="platform2" class="platform"></div>
+    <div id="platform3" class="platform"></div>
   </div>
   <div id="score">Score: 0</div>
-  <div id="time">Time: <span id="time-remaining">30</span> seconds</div>
 
   <script>
     // Game variables
     var score = 0;
-    var time = 30;
-    var timer;
+    var jumping = false;
+    var mario = document.getElementById('mario');
+    var platforms = document.getElementsByClassName('platform');
+    var containerWidth = document.getElementById('game-container').offsetWidth;
+    var marioBottom = 0;
+    var marioLeft = 0;
+    var jumpHeight = 150;
 
-    // Function to generate random coordinates for the target
-    function getRandomCoordinates() {
-      var x = Math.floor(Math.random() * 350);
-      var y = Math.floor(Math.random() * 350);
-      return [x, y];
-    }
-
-    // Function to update the target position
-    function updateTargetPosition() {
-      var coordinates = getRandomCoordinates();
-      var target = document.getElementById('target');
-      target.style.left = coordinates[0] + 'px';
-      target.style.top = coordinates[1] + 'px';
-    }
-
-    // Function to handle click event on the target
-    function handleTargetClick() {
-      score++;
-      document.getElementById('score').innerText = 'Score: ' + score;
-      updateTargetPosition();
-    }
-
-    // Function to update the time remaining
-    function updateTimeRemaining() {
-      time--;
-      document.getElementById('time-remaining').innerText = time;
-      if (time === 0) {
-        clearInterval(timer);
-        alert('Game Over! Your score is: ' + score);
-        score = 0;
-        time = 30;
-        document.getElementById('score').innerText = 'Score: ' + score;
-        document.getElementById('time-remaining').innerText = time;
-        updateTargetPosition();
-        startGame();
+    // Function to handle character jumps
+    function jump() {
+      if (!jumping) {
+        jumping = true;
+        var jumpInterval = setInterval(function() {
+          if (marioBottom >= jumpHeight) {
+            clearInterval(jumpInterval);
+            var fallInterval = setInterval(function() {
+              if (marioBottom <= 0) {
+                clearInterval(fallInterval);
+                jumping = false;
+              } else {
+                marioBottom -= 5;
+                mario.style.bottom = marioBottom + 'px';
+                checkCollision();
+              }
+            }, 10);
+          } else {
+            marioBottom += 5;
+            mario.style.bottom = marioBottom + 'px';
+            checkCollision();
+          }
+        }, 10);
       }
     }
 
-    // Function to start the game
-    function startGame() {
-      updateTargetPosition();
-      timer = setInterval(updateTimeRemaining, 1000);
+    // Function to check for collision between Mario and platforms
+    function checkCollision() {
+      for (var i = 0; i < platforms.length; i++) {
+        var platform = platforms[i];
+        var platformLeft = platform.offsetLeft;
+        var platformRight = platform.offsetLeft + platform.offsetWidth;
+        var platformTop = platform.offsetTop;
+        var platformBottom = platform.offsetTop + platform.offsetHeight;
+
+        if (
+          marioBottom <= platformTop &&
+          marioBottom >= platformTop - 5 &&
+          marioLeft + mario.offsetWidth >= platformLeft &&
+          marioLeft <= platformRight
+        ) {
+          marioBottom = platformTop;
+          mario.style.bottom = marioBottom + 'px';
+          jumping = false;
+          return;
+        }
+      }
     }
 
-    // Event listener for the target click
-    document.getElementById('target').addEventListener('click', handleTargetClick);
+    // Function to move Mario left
+    function moveLeft() {
+      if (marioLeft >= 5) {
+        marioLeft -= 5;
+        mario.style.left = marioLeft + 'px';
+      }
+    }
+
+    // Function to move Mario right
+    function moveRight() {
+      if (marioLeft <= containerWidth - mario.offsetWidth - 5) {
+        marioLeft += 5;
+        mario.style.left = marioLeft + 'px';
+      }
+    }
+
+    // Event listener for character jumps
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'ArrowUp' || event.key === ' ') {
+        jump();
+      }
+    });
+
+    // Event listener for character movements
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'ArrowLeft') {
+        moveLeft();
+      } else if (event.key === 'ArrowRight') {
+        moveRight();
+      }
+    });
+
+    // Function to generate random platforms
+    function generatePlatforms() {
+      for (var i = 0; i < platforms.length; i++) {
+        var platform = platforms[i];
+        var platformTop = Math.floor(Math.random() * 300) + 50;
+        var platformLeft = Math.floor(Math.random() * (containerWidth - platform.offsetWidth));
+        platform.style.top = platformTop + 'px';
+        platform.style.left = platformLeft + 'px';
+      }
+    }
+
+    // Function to handle collecting points
+    function collectPoint() {
+      score++;
+      document.getElementById('score').innerText = 'Score: ' + score;
+    }
+
+    // Event listener for collecting points
+    for (var i = 0; i < platforms.length; i++) {
+      platforms[i].addEventListener('click', collectPoint);
+    }
 
     // Start the game
-    startGame();
+    generatePlatforms();
   </script>
 </body>
 </html>
+
