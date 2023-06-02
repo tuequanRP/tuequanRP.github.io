@@ -66,6 +66,8 @@
               if (marioBottom <= 0) {
                 clearInterval(fallInterval);
                 jumping = false;
+                marioBottom = 0;
+                mario.style.bottom = marioBottom + 'px';
               } else {
                 marioBottom -= 5;
                 mario.style.bottom = marioBottom + 'px';
