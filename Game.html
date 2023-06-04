@@ -1,134 +1,190 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sudoku Game</title>
-  <style>
-    table {
-      border-collapse: collapse;
-      margin: auto;
-    }
+    <title>Sudoku Game</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
 
-    td {
-      width: 40px;
-      height: 40px;
-      text-align: center;
-      border: 1px solid black;
-      font-size: 20px;
-    }
+        td {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            border: 1px solid black;
+        }
 
-    .highlight {
-      background-color: lightblue;
-    }
-  </style>
+        .fixed {
+            background-color: #eee;
+        }
+
+        .selected {
+            background-color: lightblue;
+        }
+
+        .error {
+            background-color: lightcoral;
+        }
+    </style>
 </head>
 <body>
-  <h1>Sudoku Game</h1>
-  <table id="sudoku-board">
-  </table>
-  <br>
-  <button onclick="solveSudoku()">Solve</button>
-  <button onclick="resetBoard()">Reset</button>
+    <table id="sudokuBoard">
+    </table>
+    <br>
+    <button onclick="solveSudoku()">Solve</button>
+    <button onclick="clearBoard()">Clear</button>
 
-  <script>
-    const board = [
-      [5, 3, 0, 0, 7, 0, 0, 0, 0],
-      [6, 0, 0, 1, 9, 5, 0, 0, 0],
-      [0, 9, 8, 0, 0, 0, 0, 6, 0],
-      [8, 0, 0, 0, 6, 0, 0, 0, 3],
-      [4, 0, 0, 8, 0, 3, 0, 0, 1],
-      [7, 0, 0, 0, 2, 0, 0, 0, 6],
-      [0, 6, 0, 0, 0, 0, 2, 8, 0],
-      [0, 0, 0, 4, 1, 9, 0, 0, 5],
-      [0, 0, 0, 0, 8, 0, 0, 7, 9]
-    ];
+    <script>
+        var board = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9]
+        ];
 
-    const table = document.getElementById("sudoku-board");
-    const cells = [];
+        var selectedCell = null;
 
-    function createBoard() {
-      for (let i = 0; i < 9; i++) {
-        const row = document.createElement("tr");
-        table.appendChild(row);
+        function createBoard() {
+            var table = document.getElementById("sudokuBoard");
 
-        for (let j = 0; j < 9; j++) {
-          const cell = document.createElement("td");
-          cell.textContent = board[i][j] === 0 ? "" : board[i][j];
-          row.appendChild(cell);
-          cells.push(cell);
+            for (var i = 0; i < 9; i++) {
+                var row = document.createElement("tr");
 
-          if ((i + 1) % 3 === 0 && (j + 1) % 3 === 0) {
-            cell.style.borderBottom = "2px solid black";
-            cell.style.borderRight = "2px solid black";
-          } else if ((i + 1) % 3 === 0) {
-            cell.style.borderBottom = "2px solid black";
-          } else if ((j + 1) % 3 === 0) {
-            cell.style.borderRight = "2px solid black";
-          }
+                for (var j = 0; j < 9; j++) {
+                    var cell = document.createElement("td");
+                    cell.id = "cell_" + i + "_" + j;
+                    cell.onclick = function () { selectCell(this); };
+                    cell.innerHTML = board[i][j] === 0 ? "" : board[i][j];
+                    cell.classList.add(board[i][j] === 0 ? "editable" : "fixed");
+                    row.appendChild(cell);
+                }
+
+                table.appendChild(row);
+            }
         }
-      }
-    }
 
-    function resetBoard() {
-      for (let i = 0; i < cells.length; i++) {
-        cells[i].classList.remove("highlight");
-        cells[i].textContent = board[Math.floor(i / 9)][i % 9] === 0 ? "" : board[Math.floor(i / 9)][i % 9];
-      }
-    }
+        function selectCell(cell) {
+            if (selectedCell) {
+                selectedCell.classList.remove("selected");
+            }
 
-    function solveSudoku() {
-      resetBoard();
-      solve(0, 0);
-    }
-
-    function solve(row, col) {
-      if (row === 9) {
-        return true; // Reached the end of the board
-      }
-
-      if (board[row][col] !== 0) {
-        return solve(col === 8 ? row + 1 : row, (col + 1) % 9);
-      }
-
-      for (let num = 1; num <= 9; num++) {
-        if (isValidMove(row, col, num)) {
-          board[row][col] = num;
-          cells[row * 9 + col].textContent = num;
-          cells[row * 9 + col].classList.add("highlight");
-
-          if (solve(col === 8 ? row + 1 : row, (col + 1) % 9)) {
-            return true;
-          }
-
-          cells[row * 9 + col].classList.remove("highlight");
-          board[row][col] = 0;
-          cells[row * 9 + col].textContent = "";
+            selectedCell = cell;
+            selectedCell.classList.add("selected");
         }
-      }
 
-      return false;
-    }
+        function solveSudoku() {
+            var sudokuArray = getBoardArray();
 
-    function isValidMove(row, col, num) {
-      for (let i = 0; i < 9; i++) {
-        if (board[row][i] === num || board[i][col] === num) {
-          return false;
+            if (solve(sudokuArray)) {
+                setBoardFromArray(sudokuArray);
+            } else {
+                alert("No solution found!");
+            }
         }
-      }
 
-      const boxRow = Math.floor(row / 3) * 3;
-      const boxCol = Math.floor(col / 3) * 3;
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-          if (board[boxRow + i][boxCol + j] === num) {
+        function solve(board) {
+            var emptyCell = findEmptyCell(board);
+
+            if (!emptyCell) {
+                return true;
+            }
+
+            var row = emptyCell[0];
+            var col = emptyCell[1];
+
+            for (var num = 1; num <= 9; num++) {
+                if (isValid(board, row, col, num)) {
+                    board[row][col] = num;
+
+                    if (solve(board)) {
+                        return true;
+                    }
+
+                    board[row][col] = 0;
+                }
+            }
+
             return false;
-          }
         }
-      }
 
-      return true;
-    }
+        function findEmptyCell(board) {
+            for (var row = 0; row < 9; row++) {
+                for (var col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        return [row, col];
+                    }
+                }
+            }
 
-    createBoard();
-  </script>
+            return null;
+        }
+
+        function isValid(board, row, col, num) {
+            for (var i = 0; i < 9; i++) {
+                if (board[row][i] === num && col !== i) {
+                    return false;
+                }
+
+                if (board[i][col] === num && row !== i) {
+                    return false;
+                }
+
+                var boxRow = Math.floor(row / 3) * 3 + Math.floor(i / 3);
+                var boxCol = Math.floor(col / 3) * 3 + (i % 3);
+
+                if (board[boxRow][boxCol] === num && (boxRow !== row || boxCol !== col)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function getBoardArray() {
+            var sudokuArray = [];
+
+            for (var i = 0; i < 9; i++) {
+                var row = [];
+
+                for (var j = 0; j < 9; j++) {
+                    var cell = document.getElementById("cell_" + i + "_" + j);
+                    var value = parseInt(cell.innerHTML) || 0;
+
+                    row.push(value);
+                }
+
+                sudokuArray.push(row);
+            }
+
+            return sudokuArray;
+        }
+
+        function setBoardFromArray(boardArray) {
+            for (var i = 0; i < 9; i++) {
+                for (var j = 0; j < 9; j++) {
+                    var cell = document.getElementById("cell_" + i + "_" + j);
+                    cell.innerHTML = boardArray[i][j];
+                    cell.classList.remove("selected", "error");
+                }
+            }
+        }
+
+        function clearBoard() {
+            for (var i = 0; i < 9; i++) {
+                for (var j = 0; j < 9; j++) {
+                    var cell = document.getElementById("cell_" + i + "_" + j);
+                    cell.innerHTML = "";
+                    cell.classList.remove("selected", "error");
+                }
+            }
+        }
+
+        createBoard();
+    </script>
 </body>
 </html>
