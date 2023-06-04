@@ -12,6 +12,7 @@
             height: 30px;
             text-align: center;
             border: 1px solid black;
+            cursor: pointer;
         }
 
         .fixed {
@@ -58,7 +59,7 @@
                 for (var j = 0; j < 9; j++) {
                     var cell = document.createElement("td");
                     cell.id = "cell_" + i + "_" + j;
-                    cell.onclick = function () { selectCell(this); };
+                    cell.addEventListener("click", function () { selectCell(this); });
                     cell.innerHTML = board[i][j] === 0 ? "" : board[i][j];
                     cell.classList.add(board[i][j] === 0 ? "editable" : "fixed");
                     row.appendChild(cell);
