@@ -1,172 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Simple Mario Adventure</title>
+  <title>Sudoku Game</title>
   <style>
-    #game-container {
-      width: 800px;
-      height: 400px;
-      position: relative;
-      border: 1px solid black;
-      margin: 0 auto;
-      margin-top: 50px;
-      overflow: hidden;
+    table {
+      border-collapse: collapse;
+      margin: auto;
     }
 
-    #mario {
-      width: 50px;
-      height: 50px;
-      position: absolute;
-      bottom: 0;
-      background-color: red;
-    }
-
-    .platform {
-      width: 100px;
-      height: 20px;
-      position: absolute;
-      background-color: green;
-    }
-
-    #score {
+    td {
+      width: 40px;
+      height: 40px;
       text-align: center;
+      border: 1px solid black;
       font-size: 20px;
-      margin-top: 20px;
+    }
+
+    .highlight {
+      background-color: lightblue;
     }
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="mario"></div>
-    <div id="platform1" class="platform"></div>
-    <div id="platform2" class="platform"></div>
-    <div id="platform3" class="platform"></div>
-  </div>
-  <div id="score">Score: 0</div>
+  <h1>Sudoku Game</h1>
+  <table id="sudoku-board">
+  </table>
+  <br>
+  <button onclick="solveSudoku()">Solve</button>
+  <button onclick="resetBoard()">Reset</button>
 
   <script>
-    // Game variables
-    var score = 0;
-    var jumping = false;
-    var mario = document.getElementById('mario');
-    var platforms = document.getElementsByClassName('platform');
-    var containerWidth = document.getElementById('game-container').offsetWidth;
-    var marioBottom = 0;
-    var marioLeft = 0;
-    var jumpHeight = 150;
+    const board = [
+      [5, 3, 0, 0, 7, 0, 0, 0, 0],
+      [6, 0, 0, 1, 9, 5, 0, 0, 0],
+      [0, 9, 8, 0, 0, 0, 0, 6, 0],
+      [8, 0, 0, 0, 6, 0, 0, 0, 3],
+      [4, 0, 0, 8, 0, 3, 0, 0, 1],
+      [7, 0, 0, 0, 2, 0, 0, 0, 6],
+      [0, 6, 0, 0, 0, 0, 2, 8, 0],
+      [0, 0, 0, 4, 1, 9, 0, 0, 5],
+      [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ];
 
-    // Function to handle character jumps
-    function jump() {
-      if (!jumping) {
-        jumping = true;
-        var jumpInterval = setInterval(function() {
-          if (marioBottom >= jumpHeight) {
-            clearInterval(jumpInterval);
-            var fallInterval = setInterval(function() {
-              if (marioBottom <= 0) {
-                clearInterval(fallInterval);
-                jumping = false;
-                marioBottom = 0;
-                mario.style.bottom = marioBottom + 'px';
-              } else {
-                marioBottom -= 5;
-                mario.style.bottom = marioBottom + 'px';
-                checkCollision();
-              }
-            }, 10);
-          } else {
-            marioBottom += 5;
-            mario.style.bottom = marioBottom + 'px';
-            checkCollision();
+    const table = document.getElementById("sudoku-board");
+    const cells = [];
+
+    function createBoard() {
+      for (let i = 0; i < 9; i++) {
+        const row = document.createElement("tr");
+        table.appendChild(row);
+
+        for (let j = 0; j < 9; j++) {
+          const cell = document.createElement("td");
+          cell.textContent = board[i][j] === 0 ? "" : board[i][j];
+          row.appendChild(cell);
+          cells.push(cell);
+
+          if ((i + 1) % 3 === 0 && (j + 1) % 3 === 0) {
+            cell.style.borderBottom = "2px solid black";
+            cell.style.borderRight = "2px solid black";
+          } else if ((i + 1) % 3 === 0) {
+            cell.style.borderBottom = "2px solid black";
+          } else if ((j + 1) % 3 === 0) {
+            cell.style.borderRight = "2px solid black";
           }
-        }, 10);
-      }
-    }
-
-    // Function to check for collision between Mario and platforms
-    function checkCollision() {
-      var collided = false;
-      for (var i = 0; i < platforms.length; i++) {
-        var platform = platforms[i];
-        var platformLeft = platform.offsetLeft;
-        var platformRight = platform.offsetLeft + platform.offsetWidth;
-        var platformTop = platform.offsetTop;
-        var platformBottom = platform.offsetTop + platform.offsetHeight;
-
-        if (
-          marioBottom <= platformTop &&
-          marioBottom >= platformTop - 5 &&
-          marioLeft + mario.offsetWidth >= platformLeft &&
-          marioLeft <= platformRight
-        ) {
-          marioBottom = platformTop;
-          mario.style.bottom = marioBottom + 'px';
-          jumping = false;
-          collided = true;
-          break;
         }
       }
-      if (!collided) {
-        jumping = true;
+    }
+
+    function resetBoard() {
+      for (let i = 0; i < cells.length; i++) {
+        cells[i].classList.remove("highlight");
+        cells[i].textContent = board[Math.floor(i / 9)][i % 9] === 0 ? "" : board[Math.floor(i / 9)][i % 9];
       }
     }
 
-    // Function to move Mario left
-    function moveLeft() {
-      if (marioLeft >= 5) {
-        marioLeft -= 5;
-        mario.style.left = marioLeft + 'px';
-      }
+    function solveSudoku() {
+      resetBoard();
+      solve(0, 0);
     }
 
-    // Function to move Mario right
-    function moveRight() {
-      if (marioLeft <= containerWidth - mario.offsetWidth - 5) {
-        marioLeft += 5;
-        mario.style.left = marioLeft + 'px';
+    function solve(row, col) {
+      if (row === 9) {
+        return true; // Reached the end of the board
       }
+
+      if (board[row][col] !== 0) {
+        return solve(col === 8 ? row + 1 : row, (col + 1) % 9);
+      }
+
+      for (let num = 1; num <= 9; num++) {
+        if (isValidMove(row, col, num)) {
+          board[row][col] = num;
+          cells[row * 9 + col].textContent = num;
+          cells[row * 9 + col].classList.add("highlight");
+
+          if (solve(col === 8 ? row + 1 : row, (col + 1) % 9)) {
+            return true;
+          }
+
+          cells[row * 9 + col].classList.remove("highlight");
+          board[row][col] = 0;
+          cells[row * 9 + col].textContent = "";
+        }
+      }
+
+      return false;
     }
 
-    // Event listener for character jumps
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'ArrowUp' || event.key === ' ') {
-        jump();
+    function isValidMove(row, col, num) {
+      for (let i = 0; i < 9; i++) {
+        if (board[row][i] === num || board[i][col] === num) {
+          return false;
+        }
       }
-    });
 
-    // Event listener for character movements
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'ArrowLeft') {
-        moveLeft();
-      } else if (event.key === 'ArrowRight') {
-        moveRight();
+      const boxRow = Math.floor(row / 3) * 3;
+      const boxCol = Math.floor(col / 3) * 3;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (board[boxRow + i][boxCol + j] === num) {
+            return false;
+          }
+        }
       }
-    });
 
-    // Function to generate random platforms
-    function generatePlatforms() {
-      for (var i = 0; i < platforms.length; i++) {
-        var platform = platforms[i];
-        var platformTop = Math.floor(Math.random() * 300) + 50;
-        var platformLeft = Math.floor(Math.random() * (containerWidth - platform.offsetWidth));
-        platform.style.top = platformTop + 'px';
-        platform.style.left = platformLeft + 'px';
-      }
+      return true;
     }
 
-    // Function to handle collecting points
-    function collectPoint() {
-      score++;
-      document.getElementById('score').innerText = 'Score: ' + score;
-    }
-
-    // Event listener for collecting points
-    for (var i = 0; i < platforms.length; i++) {
-      platforms[i].addEventListener('click', collectPoint);
-    }
-
-    // Start the game
-    generatePlatforms();
+    createBoard();
   </script>
 </body>
 </html>
